@@ -40,7 +40,7 @@ public class MasteryTaskOneLogicTests {
             "content ID.");
         assertTrue(StringUtils.isBlank(result.getAdvertisement().getContent()), "Expected an empty " +
             "advertisement content when generating an advertisement for a customer ID with an unknown profile " +
-            "in marketplace ID: " + request.getMarketplaceId());
+            "in marketplace ID: " + request.getMarketplaceId() + " the sulod is " + result.getAdvertisement().getContent());
     }
 
     @Test
