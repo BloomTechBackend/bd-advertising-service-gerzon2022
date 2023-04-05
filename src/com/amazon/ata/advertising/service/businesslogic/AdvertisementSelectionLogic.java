@@ -67,55 +67,26 @@ public class AdvertisementSelectionLogic {
 
         TargetingEvaluator targetingEvaluator = new TargetingEvaluator(new RequestContext(customerId, marketplaceId));
 
-        CustomerProfileDao customerProfileDao = new CustomerProfileDao(new ATACustomerService());
-        CustomerProfile customerProfile =  customerProfileDao.get(customerId);
-
-
         GeneratedAdvertisement generatedAdvertisement = new EmptyGeneratedAdvertisement();
 
-
         if (StringUtils.isEmpty(marketplaceId)) {
-
             LOG.warn("MarketplaceId cannot be null or empty. Returning empty ad.");
         }  else {
 
             final List<AdvertisementContent> contents = contentDao.get(marketplaceId);
 
-     //working
-            Optional<TargetingGroup> targetingGroupsCollected  = contents.stream()
-                    .flatMap(advertisementContent -> Stream.of(targetingGroupDao.get(advertisementContent.getContentId())))
-                .flatMap(targetingGroups ->targetingGroups.stream()
-                        .filter(targetingGroup -> targetingEvaluator.evaluate(targetingGroup).isTrue()) )
-                    .sorted(Comparator.comparingDouble(TargetingGroup::getClickThroughRate)).findFirst();
+            Optional<AdvertisementContent> ligibleAdContent  = contents.stream()
+                    .flatMap(advertisementContent -> Stream.of(targetingGroupDao.get(advertisementContent.getContentId()))
+                            .flatMap(targetingGroups -> targetingGroups.stream()
+                                    .filter(targetingGroup -> targetingEvaluator.evaluate(targetingGroup).isTrue())
+                                    .map(targetingGroup -> advertisementContent))
+                    ).findFirst();
 
-
-
-
-           if(targetingGroupsCollected.isPresent()) {
-             //  generatedAdvertisement = ;
-               final List<AdvertisementContent> ligibleContents =  contents.stream()
-                       .filter(advertisementContent -> advertisementContent.getContentId().equals(targetingGroupsCollected.get().getContentId()) )
-                       .collect(Collectors.toList());
-              generatedAdvertisement = new GeneratedAdvertisement(ligibleContents.get(random.nextInt(ligibleContents.size())));
+           if(ligibleAdContent.isPresent()) {
+              generatedAdvertisement = new GeneratedAdvertisement(ligibleAdContent.get());
            } else {
                return generatedAdvertisement;
            }
-
-//
-//
-//
-//        if (CollectionUtils.isNotEmpty(contents)) {
-//
-//                AdvertisementContent randomAdvertisementContent = contents.get(random.nextInt(contents.size()));
-//                generatedAdvertisement = new GeneratedAdvertisement(randomAdvertisementContent);
-//            }
-
-//            System.out.println("missisippi " + 3);
-//            System.out.println("missisippi " +adc.isPresent() );
-//            if (adc.isPresent()) {
-//                //AdvertisementContent randomAdvertisementContent = contents.get(random.nextInt(contents.size()));
-//               generatedAdvertisement = new GeneratedAdvertisement(adc.get());
-//            }
 
         }
         return generatedAdvertisement;
