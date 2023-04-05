@@ -27,6 +27,7 @@ public class TargetingGroupDao implements ReadableDao<String, List<TargetingGrou
     @Inject
     public TargetingGroupDao(TargetingPredicateInjector targetingPredicateInjector, DynamoDBMapper mapper) {
         this.targetingPredicateInjector = targetingPredicateInjector;
+
         this.mapper = mapper;
     }
 
@@ -54,6 +55,7 @@ public class TargetingGroupDao implements ReadableDao<String, List<TargetingGrou
      */
     public TargetingGroup create(String contentId, List<TargetingPredicate> targetingPredicates) {
         TargetingGroup group = new TargetingGroup(UUID.randomUUID().toString(), contentId, 1.0, targetingPredicates);
+        group.setTargetingPredicates(targetingPredicates); //added
         mapper.save(group);
         return group;
     }

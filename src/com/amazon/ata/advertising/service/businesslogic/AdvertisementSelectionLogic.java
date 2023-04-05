@@ -10,6 +10,7 @@ import com.amazon.ata.customerservice.CustomerProfile;
 import com.amazon.ata.customerservice.GetCustomerProfileRequest;
 import com.amazon.ata.customerservice.GetCustomerProfileResponse;
 import com.amazon.atacustomerservicelambda.service.ATACustomerService;
+import com.amazonaws.services.dynamodbv2.model.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -17,7 +18,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.inject.Inject;
 
 /**
@@ -65,7 +65,6 @@ public class AdvertisementSelectionLogic {
 
         TargetingEvaluator targetingEvaluator = new TargetingEvaluator(new RequestContext(customerId, marketplaceId));
 
-//
         CustomerProfileDao customerProfileDao = new CustomerProfileDao(new ATACustomerService());
         CustomerProfile customerProfile =  customerProfileDao.get(customerId);
 
@@ -73,15 +72,14 @@ public class AdvertisementSelectionLogic {
         GeneratedAdvertisement generatedAdvertisement = new EmptyGeneratedAdvertisement();
 
 
-        System.out.println("1 mississipi" + Optional.ofNullable( customerProfile.getAgeRange()).isEmpty());
         if (StringUtils.isEmpty(marketplaceId)) {
-            System.out.println("2 mississipi");
+
             LOG.warn("MarketplaceId cannot be null or empty. Returning empty ad.");
         }  else {
-            System.out.println("3 mississipi");
+
             final List<AdvertisementContent> contents = contentDao.get(marketplaceId);
-            System.out.println(StringUtils.isEmpty(customerId) + "is this the customer empty??");
-            if(Optional.ofNullable( customerProfile.getAgeRange()).isEmpty()){
+            System.out.println("missisippi " + 1);
+            if(Optional.ofNullable(customerProfile.getAgeRange()).isEmpty()){
                 List<AdvertisementContent> emptyContents = contents.stream().map(advertisementContent -> {
                     advertisementContent.setRenderableContent("");
                     return advertisementContent;
@@ -91,26 +89,33 @@ public class AdvertisementSelectionLogic {
                 return generatedAdvertisement;
             }
 
+            System.out.println("missisippi " + 2);
+            List<TargetingGroup> filteredTargetingGroups = new ArrayList<>();
+                    contents.stream().map(advertisementContent -> targetingGroupDao.get(advertisementContent.getContentId())
+                            .stream()
+                            .filter(targetingGroup -> targetingGroup!=null)
+                            .peek(targetingGroup -> filteredTargetingGroups.add(targetingGroup)))
+                            .collect(Collectors.toList());
+            System.out.println("mississipi" + filteredTargetingGroups.size());
 
-            //based on the customer being a part of an ad's targeting group
-// customer is eligible base on the ad contents' targeting group
-            //Use `TargetingEvaluator`
-            //help filter out the ads that a customer is not eligible for
-            //Then randomly return one of the ads that the customer is
-            //eligible for (if any).
 
+//
+//
+//
+//        if (CollectionUtils.isNotEmpty(contents)) {
+//
+//                AdvertisementContent randomAdvertisementContent = contents.get(random.nextInt(contents.size()));
+//                generatedAdvertisement = new GeneratedAdvertisement(randomAdvertisementContent);
+//            }
 
-            System.out.println("5 mississipi");
-
-        if (CollectionUtils.isNotEmpty(contents)) {
-            System.out.println("6 mississipi");
-                AdvertisementContent randomAdvertisementContent = contents.get(random.nextInt(contents.size()));
-                generatedAdvertisement = new GeneratedAdvertisement(randomAdvertisementContent);
-            }
+//            System.out.println("missisippi " + 3);
+//            System.out.println("missisippi " +adc.isPresent() );
+//            if (adc.isPresent()) {
+//                //AdvertisementContent randomAdvertisementContent = contents.get(random.nextInt(contents.size()));
+//               generatedAdvertisement = new GeneratedAdvertisement(adc.get());
+//            }
 
         }
-
-
         return generatedAdvertisement;
     }
 }

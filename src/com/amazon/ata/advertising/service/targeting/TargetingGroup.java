@@ -31,7 +31,7 @@ public class TargetingGroup {
     @DynamoDBAttribute(attributeName = "TargetingPredicates")
     @DynamoDBTypeConverted(converter = TargetingPredicateTypeConverter.class)
     private List<TargetingPredicate> targetingPredicates;
-
+    public TargetingGroup() {}
     /**
      * Creates a TargetingGroup.
      * @param targetingGroupId The ID specifically for this targeting group
@@ -39,6 +39,8 @@ public class TargetingGroup {
      * @param clickThroughRate The probability a customer will click on this advertisement.
      * @param targetingPredicates All of the targeting predicates that must be TRUE to show this advertisement.
      */
+
+
     public TargetingGroup(String targetingGroupId,
                           String contentId,
                           double clickThroughRate,
@@ -53,7 +55,7 @@ public class TargetingGroup {
     /**
      * Creates an empty TargetingGroup.
      */
-    public TargetingGroup() {}
+
 
     public String getTargetingGroupId() {
         return targetingGroupId;
