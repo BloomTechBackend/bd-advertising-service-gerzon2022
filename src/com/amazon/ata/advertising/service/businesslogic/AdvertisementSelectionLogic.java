@@ -77,7 +77,7 @@ public class AdvertisementSelectionLogic {
 
             Optional<AdvertisementContent> ligibleAdContent  = contents.stream()
                     .flatMap(advertisementContent -> Stream.of(targetingGroupDao.get(advertisementContent.getContentId()))
-                            .flatMap(targetingGroups -> targetingGroups.stream()
+                            .flatMap(targetingGroups -> targetingGroups.stream().sorted(Comparator.comparingDouble(TargetingGroup::getClickThroughRate))
                                     .filter(targetingGroup -> targetingEvaluator.evaluate(targetingGroup).isTrue())
                                     .map(targetingGroup -> advertisementContent))
                     ).findFirst();
