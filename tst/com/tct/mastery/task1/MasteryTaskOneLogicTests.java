@@ -13,6 +13,7 @@ public class MasteryTaskOneLogicTests {
 
     @Test
     public void generateAdvertisement_withTargetCustomerIdInMarketplace_returnsAdvertisement() {
+
         GenerateAdvertisementRequest request = GenerateAdvertisementRequest.builder()
             .withCustomerId(PARENT_PROFILE_CUSTOMER_ID)
             .withMarketplaceId(US_MARKETPLACE_ID)

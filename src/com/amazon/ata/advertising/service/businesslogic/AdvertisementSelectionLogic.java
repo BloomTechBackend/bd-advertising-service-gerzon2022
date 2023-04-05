@@ -6,11 +6,11 @@ import com.amazon.ata.advertising.service.model.*;
 import com.amazon.ata.advertising.service.targeting.TargetingEvaluator;
 import com.amazon.ata.advertising.service.targeting.TargetingGroup;
 
+import com.amazon.ata.advertising.service.targeting.predicate.TargetingPredicateResult;
 import com.amazon.ata.customerservice.CustomerProfile;
 import com.amazon.ata.customerservice.GetCustomerProfileRequest;
 import com.amazon.ata.customerservice.GetCustomerProfileResponse;
 import com.amazon.atacustomerservicelambda.service.ATACustomerService;
-import com.amazonaws.services.dynamodbv2.model.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -18,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 
 /**
@@ -41,6 +42,7 @@ public class AdvertisementSelectionLogic {
                                        ReadableDao<String, List<TargetingGroup>> targetingGroupDao) {
         this.contentDao = contentDao;
         this.targetingGroupDao = targetingGroupDao;
+
     }
 
     /**
@@ -78,26 +80,26 @@ public class AdvertisementSelectionLogic {
         }  else {
 
             final List<AdvertisementContent> contents = contentDao.get(marketplaceId);
-            System.out.println("missisippi " + 1);
-            if(Optional.ofNullable(customerProfile.getAgeRange()).isEmpty()){
-                List<AdvertisementContent> emptyContents = contents.stream().map(advertisementContent -> {
-                    advertisementContent.setRenderableContent("");
-                    return advertisementContent;
-                }).collect(Collectors.toList());
-                AdvertisementContent randomAdvertisementContent = emptyContents.get(random.nextInt(emptyContents.size()));
-                generatedAdvertisement = new GeneratedAdvertisement(randomAdvertisementContent);
-                return generatedAdvertisement;
-            }
 
-            System.out.println("missisippi " + 2);
-            List<TargetingGroup> filteredTargetingGroups = new ArrayList<>();
-                    contents.stream().map(advertisementContent -> targetingGroupDao.get(advertisementContent.getContentId())
-                            .stream()
-                            .filter(targetingGroup -> targetingGroup!=null)
-                            .peek(targetingGroup -> filteredTargetingGroups.add(targetingGroup)))
-                            .collect(Collectors.toList());
-            System.out.println("mississipi" + filteredTargetingGroups.size());
+     //working
+            Optional<TargetingGroup> targetingGroupsCollected  = contents.stream()
+                    .flatMap(advertisementContent -> Stream.of(targetingGroupDao.get(advertisementContent.getContentId())))
+                .flatMap(targetingGroups ->targetingGroups.stream()
+                        .filter(targetingGroup -> targetingEvaluator.evaluate(targetingGroup).isTrue()) )
+                    .sorted(Comparator.comparingDouble(TargetingGroup::getClickThroughRate)).findFirst();
 
+
+
+
+           if(targetingGroupsCollected.isPresent()) {
+             //  generatedAdvertisement = ;
+               final List<AdvertisementContent> ligibleContents =  contents.stream()
+                       .filter(advertisementContent -> advertisementContent.getContentId().equals(targetingGroupsCollected.get().getContentId()) )
+                       .collect(Collectors.toList());
+              generatedAdvertisement = new GeneratedAdvertisement(ligibleContents.get(random.nextInt(ligibleContents.size())));
+           } else {
+               return generatedAdvertisement;
+           }
 
 //
 //

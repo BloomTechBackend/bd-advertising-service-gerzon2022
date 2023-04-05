@@ -36,13 +36,18 @@ public class TargetingPredicateTypeConverter implements DynamoDBTypeConverter<St
         if (predicateList == null) {
             return "";
         }
-        String jsonPredicates;
-        try {
-            jsonPredicates = MAPPER.writeValueAsString(predicateList);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        return jsonPredicates;
+//        String jsonPredicates;
+//        try {
+//            jsonPredicates = MAPPER.writeValueAsString(predicateList);
+//        } catch (JsonProcessingException e) {
+//            throw new RuntimeException(e);
+//        }
+//        return jsonPredicates;
+        return new StringBuffer()
+                .append("[")
+                .append(predicateList.stream()
+                        .map(this::getSerializePredicateFunction).collect(Collectors.joining(",")))
+                .append("]").toString();
     }
 
     private String getSerializePredicateFunction(TargetingPredicate predicate) {
@@ -67,7 +72,7 @@ public class TargetingPredicateTypeConverter implements DynamoDBTypeConverter<St
 
             predicates = MAPPER.readValue(value,
                     new TypeReference<List<TargetingPredicate>>() { });
-            System.out.println(predicates.size() + "shiiit");
+
             for (TargetingPredicate predicate : predicates) {
                 injector.inject(predicate);
             }
