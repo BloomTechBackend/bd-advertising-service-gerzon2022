@@ -64,7 +64,7 @@ public class AdvertisementSelectionLogic {
      *     not be generated.
      */
     public GeneratedAdvertisement selectAdvertisement(String customerId, String marketplaceId) {
-
+        TreeMap<TargetingGroup, AdvertisementContent> treeMap = new TreeMap<>(Comparator.comparing(TargetingGroup::getClickThroughRate).reversed());
         TargetingEvaluator targetingEvaluator = new TargetingEvaluator(new RequestContext(customerId, marketplaceId));
 
         GeneratedAdvertisement generatedAdvertisement = new EmptyGeneratedAdvertisement();
@@ -75,19 +75,27 @@ public class AdvertisementSelectionLogic {
 
             final List<AdvertisementContent> contents = contentDao.get(marketplaceId);
 
-            Optional<AdvertisementContent> ligibleAdContent  = contents.stream()
+            contents.stream()
                     .flatMap(advertisementContent -> Stream.of(targetingGroupDao.get(advertisementContent.getContentId()))
                             .flatMap(targetingGroups -> targetingGroups.stream().sorted(Comparator.comparingDouble(TargetingGroup::getClickThroughRate))
                                     .filter(targetingGroup -> targetingEvaluator.evaluate(targetingGroup).isTrue())
-                                    .map(targetingGroup -> advertisementContent))
-                    ).findFirst();
+                                    .map(targetingGroup -> Map.entry(targetingGroup, advertisementContent))))
+                    .forEach(entry -> treeMap.put(entry.getKey(), entry.getValue()));
 
-           if(ligibleAdContent.isPresent()) {
-              generatedAdvertisement = new GeneratedAdvertisement(ligibleAdContent.get());
-           } else {
-               return generatedAdvertisement;
-           }
+            System.out.println(treeMap.size() + " map treemap" + " "+  treeMap.firstKey().getClickThroughRate());
+            for (TargetingGroup targetingGroup : treeMap.keySet()) {
+                System.out.println(targetingGroup.getClickThroughRate() + " wew " + new GeneratedAdvertisement(treeMap.get(targetingGroup)));
+            }
 
+
+
+
+
+            if(treeMap.size() > 0) {
+                generatedAdvertisement = new GeneratedAdvertisement(treeMap.get(treeMap.firstKey()));
+            } else {
+                return generatedAdvertisement;
+            }
         }
         return generatedAdvertisement;
     }
