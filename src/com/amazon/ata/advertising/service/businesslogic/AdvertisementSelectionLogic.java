@@ -73,7 +73,6 @@ public class AdvertisementSelectionLogic {
         if (StringUtils.isEmpty(marketplaceId)) {
             LOG.warn("MarketplaceId cannot be null or empty. Returning empty ad.");
         }  else {
-
             final List<AdvertisementContent> contents = contentDao.get(marketplaceId);
 
             contents.stream()
