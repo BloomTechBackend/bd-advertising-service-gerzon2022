@@ -83,15 +83,6 @@ public class AdvertisementSelectionLogic {
                                     .map(targetingGroup -> Map.entry(targetingGroup, advertisementContent))))
                     .forEach(entry -> treeMap.put(entry.getKey(), entry.getValue()));
 
-            System.out.println(treeMap.size() + " map treemap" + " "+  treeMap.firstKey().getClickThroughRate());
-            for (TargetingGroup targetingGroup : treeMap.keySet()) {
-                System.out.println(targetingGroup.getClickThroughRate() + " wew " + new GeneratedAdvertisement(treeMap.get(targetingGroup)));
-            }
-
-
-
-
-
             if(treeMap.size() > 0) {
                 generatedAdvertisement = new GeneratedAdvertisement(treeMap.get(treeMap.firstKey()));
             } else {
