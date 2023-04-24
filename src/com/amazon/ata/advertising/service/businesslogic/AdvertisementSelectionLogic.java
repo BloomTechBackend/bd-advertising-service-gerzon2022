@@ -63,6 +63,7 @@ public class AdvertisementSelectionLogic {
      * @return an advertisement customized for the customer id provided, or an empty advertisement if one could
      *     not be generated.
      */
+
     public GeneratedAdvertisement selectAdvertisement(String customerId, String marketplaceId) {
         TreeMap<TargetingGroup, AdvertisementContent> treeMap = new TreeMap<>(Comparator.comparing(TargetingGroup::getClickThroughRate).reversed());
         TargetingEvaluator targetingEvaluator = new TargetingEvaluator(new RequestContext(customerId, marketplaceId));
